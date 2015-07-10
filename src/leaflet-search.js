@@ -24,6 +24,7 @@ L.Control.Search = L.Control.extend({
 		propertyName: 'title',		//property in marker.options(or feature.properties for vector layer) trough filter elements in layer,
 		propertyLoc: 'loc',			//field for remapping location, using array: ['latname','lonname'] for select double fields(ex. ['lat','lon'] )
 									// support dotted format: 'prop.subprop.title'
+        propertyPopup: 'popup',     //popup showed after clicking on marker
 		callTip: null,				//function that return row tip html node(or html string), receive text tooltip in first param
 		filterJSON: null,			//callback for filtering data to _recordsCache
 		minLength: 1,				//minimal text length for autocomplete
@@ -45,7 +46,8 @@ L.Control.Search = L.Control.extend({
 		animateLocation: true,		//animate a circle over location found
 		circleLocation: true,		//draw a circle in location found
 		markerLocation: false,		//draw a marker in location found
-		markerIcon: new L.Icon.Default()//custom icon for maker location
+		markerIcon: new L.Icon.Default(),//custom icon for maker location
+		markerWithPopupIcon: new L.Icon.Default()//custom icon for marker that has popup bound
 	},
 //FIXME option condition problem {autoCollapse: true, markerLocation: true} not show location
 //FIXME option condition problem {autoCollapse: false }
@@ -84,11 +86,13 @@ L.Control.Search = L.Control.extend({
 		if(this.options.collapsed===false)
 			this.expand(this.options.collapsed);
 
-		if(this.options.circleLocation || this.options.markerLocation || this.options.markerIcon)
+		if(this.options.circleLocation || this.options.markerLocation 
+			|| this.options.markerIcon || this.options.markerWithPopupIcon)
 			this._markerLoc = new SearchMarker([0,0], {
 					showCircle: this.options.circleLocation,
 					showMarker: this.options.markerLocation,
-					icon: this.options.markerIcon
+					icon: this.options.markerIcon,
+					iconWithPopup: this.options.markerWithPopupIcon
 				});//see below
 		
 		this.setLayer( this._layer );
@@ -417,14 +421,15 @@ L.Control.Search = L.Control.extend({
 	_defaultFilterJSON: function(json) {	//default callback for filter data
 		var jsonret = {}, i,
 			propName = this.options.propertyName,
-			propLoc = this.options.propertyLoc;
+			propLoc = this.options.propertyLoc,
+			propPopup = this.options.propertyPopup;
 
 		if( L.Util.isArray(propLoc) )
 			for(i in json)
-				jsonret[ this._getPath(json[i],propName) ]= L.latLng( json[i][ propLoc[0] ], json[i][ propLoc[1] ] );
+				jsonret[ this._getPath(json[i],propName) ]= [ L.latLng( json[i][ propLoc[0] ], json[i][ propLoc[1] ] ),  json[i][propPopup] ];
 		else
 			for(i in json)
-				jsonret[ this._getPath(json[i],propName) ]= L.latLng( this._getPath(json[i],propLoc) );
+				jsonret[ this._getPath(json[i],propName) ]= [ L.latLng( this._getPath(json[i],propLoc) ), json[i][propPopup] ];
 		//TODO throw new Error("propertyName '"+propName+"' not found in JSON data");
 		return jsonret;
 	},
@@ -763,8 +768,9 @@ L.Control.Search = L.Control.extend({
 			return false;
 	},
 
-	showLocation: function(latlng, title) {	//set location on map from _recordsCache
-			
+	showLocation: function(data, title) {	//set location on map from _recordsCache
+		
+		var latlng = data[0];
 		if(this.options.zoom)
 			this._map.setView(latlng, this.options.zoom);
 		else
@@ -774,6 +780,13 @@ L.Control.Search = L.Control.extend({
 		{
 			this._markerLoc.setLatLng(latlng);  //show circle/marker in location found
 			this._markerLoc.setTitle(title);
+			this._markerLoc.closePopup();
+			this._markerLoc.unbindPopup();
+			if(typeof(data[1]) !== 'undefined') {// bind popup text
+	        	this._markerLoc.bindPopup(data[1]);
+	        	this._markerLoc.setIcon(this.options.markerWithPopupIcon);
+	        } else
+	        	this._markerLoc.setIcon(this.options.markerIcon);
 			this._markerLoc.show();
 			if(this.options.animateLocation)
 				this._markerLoc.animate();
