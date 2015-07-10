@@ -32,6 +32,7 @@ L.Control.Search = L.Control.extend({
         autoType: true,             //complete input with first suggested result and select this filled-in text.
         delayType: 400,             //delay while typing for show tooltip
         tooltipLimit: -1,           //limit max results to show in tooltip. -1 for no limit.
+        tooltipLocation: 'bottom',  //whether tooltip appears above or under search bar
         tipAutoSubmit: true,        //auto map panTo when click on tooltip
         autoResize: true,           //autoresize on input change
         collapsed: true,            //collapse search control at startup
@@ -79,6 +80,10 @@ L.Control.Search = L.Control.extend({
         this._container = L.DomUtil.create('div', 'leaflet-control-search');
         this._input = this._createInput(this.options.text, 'search-input');
         this._tooltip = this._createTooltip('search-tooltip');
+        if(this.options.tooltipLocation === 'bottom')
+            this._tooltip.style.top = '100%';
+        else
+            this._tooltip.style.bottom = '100%';
         this._cancel = this._createCancel(this.options.textCancel, 'search-cancel');
         this._button = this._createButton(this.options.text, 'search-button');
         this._alert = this._createAlert('search-alert');
