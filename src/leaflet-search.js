@@ -1,3 +1,19 @@
+/* 
+ * Leaflet Control Search v1.5.7 - 2015-05-07 
+ * 
+ * Copyright 2014 Stefano Cudini 
+ * stefano.cudini@gmail.com 
+ * http://labs.easyblog.it/ 
+ * 
+ * Licensed under the MIT license. 
+ * 
+ * Demo: 
+ * http://labs.easyblog.it/maps/leaflet-search/ 
+ * 
+ * Source: 
+ * git@github.com:stefanocudini/leaflet-search.git 
+ * 
+ */
 (function() {
 
 L.Control.Search = L.Control.extend({
