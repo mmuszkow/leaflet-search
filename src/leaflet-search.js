@@ -17,6 +17,7 @@ L.Control.Search = L.Control.extend({
         wrapper: '',                //container id to insert Search Control
         url: '',                    //url for search by ajax request, ex: "search.php?q={s}". Can be function that returns string for dynamic parameter setting
         jsonpParam: null,           //jsonp param name for search by jsonp service, ex: "callback"
+        icon: '../img/search.png',  //button icon (before expanding search bar)
         layer: null,                //layer where search markers(is a L.LayerGroup)     
         callData: null,             //function that fill _recordsCache, passed searching text by first param and callback in second
         //TODO important! implements uniq option 'sourceData' that recognizes source type: url,array,callback or layer      
@@ -32,7 +33,6 @@ L.Control.Search = L.Control.extend({
         autoType: true,             //complete input with first suggested result and select this filled-in text.
         delayType: 400,             //delay while typing for show tooltip
         tooltipLimit: -1,           //limit max results to show in tooltip. -1 for no limit.
-        tooltipLocation: 'bottom',  //whether tooltip appears above or under search bar
         tipAutoSubmit: true,        //auto map panTo when click on tooltip
         autoResize: true,           //autoresize on input change
         collapsed: true,            //collapse search control at startup
@@ -77,15 +77,13 @@ L.Control.Search = L.Control.extend({
 
     onAdd: function (map) {
         this._map = map;
-        this._container = L.DomUtil.create('div', 'leaflet-control-search');
+        this._container = L.DomUtil.create('div', 'leaflet-control-search leaflet-bar');
+        this._barContainer = L.DomUtil.create('div', 'search-bar-holder', this._container);
         this._input = this._createInput(this.options.text, 'search-input');
-        this._tooltip = this._createTooltip('search-tooltip');
-        if(this.options.tooltipLocation === 'bottom')
-            this._tooltip.style.top = '100%';
-        else
-            this._tooltip.style.bottom = '100%';
-        this._cancel = this._createCancel(this.options.textCancel, 'search-cancel');
         this._button = this._createButton(this.options.text, 'search-button');
+        this._cancel = this._createCancel(this.options.textCancel, 'search-cancel');
+        this._button.style.backgroundImage = 'url(' + this.options.icon + ')';
+        this._tooltip = this._createTooltip('search-tooltip');
         this._alert = this._createAlert('search-alert');
 
         if(this.options.collapsed===false)
@@ -191,11 +189,13 @@ L.Control.Search = L.Control.extend({
     expand: function(toggle) {
         toggle = toggle || true;
         this._input.style.display = 'block';
+        this._button.style.backgroundImage = 'url(../www/img/search.png)';
         L.DomUtil.addClass(this._container, 'search-exp');
         if ( toggle != false ) {
             this._input.focus();
             this._map.on('dragstart click', this.collapse, this);
         }
+        this._input.style.height = (this._button.offsetHeight-10)+'px';
         return this;    
     },
 
@@ -203,6 +203,7 @@ L.Control.Search = L.Control.extend({
         this._hideTooltip();
         this.cancel();
         this._alert.style.display = 'none';
+        this._button.style.backgroundImage = 'url('+this.options.icon+')';
         this._input.blur();
         if(this.options.collapsed)
         {
@@ -244,8 +245,8 @@ L.Control.Search = L.Control.extend({
     },
 
     _createInput: function (text, className) {
-        var label = L.DomUtil.create('label', className, this._container);
-        var input = L.DomUtil.create('input', className, this._container);
+        var label = L.DomUtil.create('label', className, this._barContainer);
+        var input = L.DomUtil.create('input', className, this._barContainer);
         input.type = 'text';
         input.size = this._inputMinSize;
         input.value = '';
@@ -272,7 +273,7 @@ L.Control.Search = L.Control.extend({
     },
 
     _createCancel: function (title, className) {
-        var cancel = L.DomUtil.create('a', className, this._container);
+        var cancel = L.DomUtil.create('a', className, this._button);
         cancel.href = '#';
         cancel.title = title;
         cancel.style.display = 'none';
@@ -286,7 +287,7 @@ L.Control.Search = L.Control.extend({
     },
     
     _createButton: function (title, className) {
-        var button = L.DomUtil.create('a', className, this._container);
+        var button = L.DomUtil.create('a', className, this._barContainer);
         button.href = '#';
         button.title = title;
 
@@ -399,6 +400,7 @@ L.Control.Search = L.Control.extend({
             if(++this._countertips == this.options.tooltipLimit) break;
 
             newTip = this._createTip(key, filteredRecords[key] );
+            newTip.style.width = 'inherit';
 
             this._tooltip.appendChild(newTip);
         }
