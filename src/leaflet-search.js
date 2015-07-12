@@ -94,10 +94,10 @@ L.Control.Search = L.Control.extend({
     onAdd: function (map) {
         this._map = map;
         this._container = L.DomUtil.create('div', 'leaflet-control-search leaflet-bar');
-        this._barContainer = L.DomUtil.create('div', 'search-bar-holder', this._container);
-        this._input = this._createInput(this.options.text, 'search-input');
-        this._button = this._createButton(this.options.text, 'search-button');
+        this._bar_holder = L.DomUtil.create('div', 'search-bar-holder', this._container );
+        this._input = this._createInput(this.options.text, 'search-input leaflet-bar');
         this._cancel = this._createCancel(this.options.textCancel, 'search-cancel');
+        this._button = this._createButton(this.options.text, 'search-button');
         this._button.style.backgroundImage = 'url(' + this.options.icon + ')';
         this._tooltip = this._createTooltip('search-tooltip');
         this._alert = this._createAlert('search-alert');
@@ -203,6 +203,11 @@ L.Control.Search = L.Control.extend({
     },
     
     expand: function(toggle) {
+        var bb = parseFloat(getComputedStyle(this._input,null).getPropertyValue('border-bottom-width'));
+        var bt = parseFloat(getComputedStyle(this._input,null).getPropertyValue('border-top-width'));
+        var pb = parseFloat(getComputedStyle(this._input,null).getPropertyValue('padding-bottom'));
+        var pt = parseFloat(getComputedStyle(this._input,null).getPropertyValue('padding-top'));
+        this._input.style.height = (this._button.clientHeight-bb-bt-pb-pt)+'px'
         toggle = toggle || true;
         this._input.style.display = 'block';
         this._button.style.backgroundImage = 'url(../www/img/search.png)';
@@ -211,7 +216,6 @@ L.Control.Search = L.Control.extend({
             this._input.focus();
             this._map.on('dragstart click', this.collapse, this);
         }
-        this._input.style.height = (this._button.offsetHeight-10)+'px';
         return this;    
     },
 
@@ -261,8 +265,9 @@ L.Control.Search = L.Control.extend({
     },
 
     _createInput: function (text, className) {
-        var label = L.DomUtil.create('label', className, this._barContainer);
-        var input = L.DomUtil.create('input', className, this._barContainer);
+    	this._input_holder = L.DomUtil.create('div', 'search-input-holder', this._bar_holder);
+        var label = L.DomUtil.create('label', className, this._input_holder);
+        var input = L.DomUtil.create('input', className, this._input_holder);
         input.type = 'text';
         input.size = this._inputMinSize;
         input.value = '';
@@ -289,7 +294,7 @@ L.Control.Search = L.Control.extend({
     },
 
     _createCancel: function (title, className) {
-        var cancel = L.DomUtil.create('a', className, this._button);
+        var cancel = L.DomUtil.create('a', className, this._input_holder);
         cancel.href = '#';
         cancel.title = title;
         cancel.style.display = 'none';
@@ -303,7 +308,7 @@ L.Control.Search = L.Control.extend({
     },
     
     _createButton: function (title, className) {
-        var button = L.DomUtil.create('a', className, this._barContainer);
+        var button = L.DomUtil.create('a', className, this._bar_holder);
         button.href = '#';
         button.title = title;
 
